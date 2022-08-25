@@ -660,6 +660,39 @@ function Sort(itemA, itemB)
     end
 end
 
+-- the builtin math.floor and math.ceil funtions are painfully slow; we can do better
+
+---@param x number
+---@return integer
+function math.floor(x)
+    -- it is faster to coerce integers using bitsize XOR instead of math.floor by several orders
+    -- of magnitude, but it only works for non-negative numbers
+    if x >= 0 then
+        return x ^ 0
+    else
+        local trunc = -((-x) ^ 0)
+        if trunc ~= x then
+            trunc = trunc - 1 -- truncating the negative resulted in it rounding up--undo this
+        end
+        return trunc
+    end
+end
+
+---@param x number
+---@return integer
+function math.ceil(x)
+    -- same as what we did for `math.floor` but in the opposite direction
+    if x <= 0 then
+        return -((-x) ^ 0)
+    else
+        local trunc = x ^ 0
+        if trunc ~= x then
+            trunc = trunc + 1
+        end
+        return trunc
+    end
+end
+
 -- Rounds a number to specified double precision
 function math.round(num,idp)
     if not idp then
